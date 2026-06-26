@@ -21,11 +21,11 @@ export function walkthrough02_Embedding(args: IWalkthroughArgs) {
     wt.dimHighlightBlocks = [layout.idxObj, layout.tokEmbedObj, layout.posEmbedObj, layout.residual0];
 
     commentary(wt)`
-We saw previously how the tokens are mapped to a sequence of integers using a simple lookup table.
-These integers, the ${c_blockRef('_token indices_', state.layout.idxObj, DimStyle.TokenIdx)}, are the first and only time we see integers in the model.
-From here on out, we're using floats (decimal numbers).
+之前我们看到 token 是如何通过一个简单的查表被映射为整数序列的。
+这些整数，即 ${c_blockRef('_token 索引_', state.layout.idxObj, DimStyle.TokenIdx)}，是我们在这个模型中唯一一次看到整数。
+从那之后，我们将全部使用浮点数（小数）。
 
-Let's take a look at how the 4th token (index 3) is used to generate the 4th column vector of our ${c_blockRef('_input embedding_', state.layout.residual0)}.`;
+让我们来看看第 4 个 token（索引 3）是如何被用来生成 ${c_blockRef('_输入嵌入_', state.layout.residual0)} 的第 4 列向量的。`;
     breakAfter();
 
     let t_moveCamera = afterTime(null, 1.0);
@@ -34,10 +34,10 @@ Let's take a look at how the 4th token (index 3) is used to generate the 4th col
     breakAfter();
 
     commentary(wt)`
-We use the token index (in this case ${c_str('B', DimStyle.Token)} = ${c_dimRef('1', DimStyle.TokenIdx)}) to select the 2nd column of the ${c_blockRef('_token embedding matrix_', state.layout.tokEmbedObj)} on the left.
-Note we're using 0-based indexing here, so the first column is at index 0.
+我们使用 token 索引（在这个例子中 ${c_str('B', DimStyle.Token)} = ${c_dimRef('1', DimStyle.TokenIdx)})来选取左侧 ${c_blockRef('_token 嵌入矩阵_', state.layout.tokEmbedObj)} 的第 2 列。
+注意这里我们使用的是从 0 开始的索引，所以第一列的索引是 0。
 
-This produces a column vector of size ${c_dimRef('_C_ = 48', DimStyle.C)}, which we describe as the token embedding.
+这样就产生了一个大小为 ${c_dimRef('_C_ = 48', DimStyle.C)} 的列向量，我们称之为 token 嵌入。
     `;
     breakAfter();
 
@@ -47,9 +47,9 @@ This produces a column vector of size ${c_dimRef('_C_ = 48', DimStyle.C)}, which
     breakAfter();
 
     commentary(wt)`
-And since we're looking at our token ${c_str('B', DimStyle.Token)} in the 4th _position_ (t = ${c_dimRef('3', DimStyle.T)}), we'll take the 4th column of the ${c_blockRef('_position embedding matrix_', state.layout.posEmbedObj)}.
+由于我们正在看第 4 个 _位置_（t = ${c_dimRef('3', DimStyle.T)})的 token ${c_str('B', DimStyle.T)}，我们还需要取 ${c_blockRef('_位置嵌入矩阵_', state.layout.posEmbedObj)} 的第 4 列。
 
-This also produces a column vector of size ${c_dimRef('_C_ = 48', DimStyle.C)}, which we describe as the position embedding.
+这同样产生了一个大小为 ${c_dimRef('_C_ = 48', DimStyle.C)} 的列向量，我们称之为位置嵌入。
     `;
     breakAfter();
 
@@ -58,9 +58,9 @@ This also produces a column vector of size ${c_dimRef('_C_ = 48', DimStyle.C)}, 
     breakAfter();
 
     commentary(wt)`
-Note that both of these position and token embeddings are learned during training (indicated by their blue color).
+注意，这两组位置嵌入和 token 嵌入都是在训练过程中学习得到的（由它们的蓝色标记可知）。
 
-Now that we have these two column vectors, we simply add them together to produce another column vector of size ${c_dimRef('_C_ = 48', DimStyle.C)}.
+现在我们有了这两个列向量，我们只需将它们相加，就能得到另一个大小为 ${c_dimRef('_C_ = 48', DimStyle.C)} 的列向量。
 `;
 
     breakAfter();
@@ -76,7 +76,7 @@ Now that we have these two column vectors, we simply add them together to produc
     breakAfter();
 
     commentary(wt)`
-We now run this same process for all of the tokens in the input sequence, creating a set of vectors which incorporate both the token values and their positions.
+现在我们对输入序列中的所有 token 运行相同的过程，创建一组同时包含 token 值和位置信息的向量。
 
 `;
 
@@ -87,15 +87,15 @@ We now run this same process for all of the tokens in the input sequence, creati
     breakAfter();
 
     commentary(wt)`
-Feel free to hover over individual cells on the ${c_blockRef('_input embedding_', state.layout.residual0)} matrix to see the computations and their sources.
+你可以将鼠标悬停在 ${c_blockRef('_输入嵌入_', state.layout.residual0)} 矩阵的单个格子上，查看其计算过程和来源。
 
-We see that running this process for all the tokens in the input sequence produces a matrix of size ${c_dimRef('_T_', DimStyle.T)} x ${c_dimRef('_C_', DimStyle.C)}.
-The ${c_dimRef('_T_', DimStyle.T)} stands for ${c_dimRef('_time_', DimStyle.T)}, i.e., you can think of tokens later in the sequence as later in time.
-The ${c_dimRef('_C_', DimStyle.C)} stands for ${c_dimRef('_channel_', DimStyle.C)}, but is also referred to as "feature" or "dimension" or "embedding size". This length, ${c_dimRef('_C_', DimStyle.C)},
-is one of the several "hyperparameters" of the model, and is chosen by the designer to in a tradeoff between model size and performance.
+我们看到，对序列中的所有 token 运行此过程，会得到一个大小为 ${c_dimRef('_T_', DimStyle.T)} × ${c_dimRef('_C_', DimStyle.C)} 的矩阵。
+${c_dimRef('_T_', DimStyle.T)} 代表 _时间_（time），即你可以把序列中靠后的 token 想象为时间上靠后的 token。
+${c_dimRef('_C_', DimStyle.C)} 代表 _通道_（channel），但也常被称为"特征"、"维度"或"嵌入大小"。这个长度 ${c_dimRef('_C_', DimStyle.C)}
+是模型的几个"超参数"之一，由设计者根据模型大小和性能之间的权衡来选择。
 
-This matrix, which we'll refer to as the ${c_blockRef('_input embedding_', state.layout.residual0)} is now ready to be passed down through the model.
-This collection of ${c_dimRef('T', DimStyle.T)} columns each of length ${c_dimRef('C', DimStyle.C)} will become a familiar sight throughout this guide.
+这个矩阵，我们称之为 ${c_blockRef('_输入嵌入_', state.layout.residual0)}，现在准备好向下传递穿过模型了。
+这组 ${c_dimRef('T', DimStyle.T)} 列，每列长度为 ${c_dimRef('C', DimStyle.C)}，将成为本指南中常见的画面。
 `;
 
     cleanup(t9_cleanupInstant, [t3_moveTokenEmbed, t5_movePosEmbed, t6_plusSymAnim, t7_addAnim, t8_placeAnim]);
