@@ -81,9 +81,6 @@ add a number of walkthroughs, showing things such as:
 
 ## 本地部署（安装 / 启动 / 停止 / 清理）
 
-> 若处于受限网络，安装与拉取依赖前先配置代理：`source ~/set_proxy_env.sh`
-> （dev server 启动后，本地浏览器访问不需要代理。）
-
 ### 1. 安装依赖
 
 ```bash
@@ -102,6 +99,21 @@ npm install     # 可用，但会生成 package-lock.json 并改写 yarn.lock
 yarn dev        # 或 npm run dev
 ```
 
+后台启动开发模式（npm）：
+
+```bash
+cd llm-viz
+mkdir -p logs
+nohup npm run dev > logs/dev.log 2>&1 &
+echo $! > .next-dev.pid
+```
+
+查看日志：
+
+```bash
+tail -f logs/dev.log
+```
+
 浏览器打开 **http://localhost:3002/llm** 查看 LLM 3D 可视化（需支持 WebGL2 的浏览器：新版 Chrome / Edge / Firefox）。
 `/` 为主页，`/llm-viz` 会重定向到 `/llm`。
 
@@ -113,11 +125,17 @@ yarn build && yarn start     # 或 npm run build && npm start
 
 ### 3. 停止 dev server
 
-前台运行时 `Ctrl+C` 即可。若用后台任务启动，记下任务 ID 后停止：
+前台运行时 `Ctrl+C` 即可。若按上面的 `nohup npm run dev` 后台启动，可用 PID 文件停止：
 
 ```bash
-# 示例：后台任务 ID 为 b9uiwe3pr
-# 在 Claude Code 中执行 TaskStop 停止该后台任务
+kill $(cat .next-dev.pid)
+rm .next-dev.pid
+```
+
+如果 PID 文件丢失，可按端口停止：
+
+```bash
+lsof -ti :3002 | xargs kill
 ```
 
 ### 4. 局域网访问
@@ -145,7 +163,7 @@ sudo iptables -I INPUT -p tcp --dport 3002 -j ACCEPT
 git clone <仓库地址>
 cd llm-viz
 
-# 2. 安装依赖（网络受限时先配代理）
+# 2. 安装依赖
 yarn          # 或 npm install
 
 # 3. 启动
