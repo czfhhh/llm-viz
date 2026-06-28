@@ -104,8 +104,7 @@ yarn dev        # 或 npm run dev
 ```bash
 cd llm-viz
 mkdir -p logs
-nohup npm run dev > logs/dev.log 2>&1 &
-echo $! > .next-dev.pid
+setsid sh -c 'echo $$ > .next-dev.pid; exec npm run dev' > logs/dev.log 2>&1 &
 ```
 
 查看日志：
@@ -125,17 +124,22 @@ yarn build && yarn start     # 或 npm run build && npm start
 
 ### 3. 停止 dev server
 
-前台运行时 `Ctrl+C` 即可。若按上面的 `nohup npm run dev` 后台启动，可用 PID 文件停止：
+前台运行时 `Ctrl+C` 即可。若按上面的后台方式启动，可按进程组停止：
 
 ```bash
-kill $(cat .next-dev.pid)
+kill -- -$(cat .next-dev.pid)
 rm .next-dev.pid
 ```
 
-如果 PID 文件丢失，可按端口停止：
+这里的负号表示停止整个进程组。`npm run dev` 会继续启动 `next dev`、router worker 和 render worker，只杀 PID 文件里的单个进程可能会留下子进程。
+
+如果 PID 文件丢失，可先从 3002 端口找到监听进程，再停止它所在的进程组：
 
 ```bash
-lsof -ti :3002 | xargs kill
+for pid in $(lsof -ti :3002); do
+  pgid=$(ps -o pgid= -p "$pid" | tr -d ' ')
+  [ -n "$pgid" ] && kill -- -"$pgid"
+done
 ```
 
 ### 4. 局域网访问
